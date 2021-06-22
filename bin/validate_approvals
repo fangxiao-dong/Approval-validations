@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+
+import argparse
+import sys
+import os.path
+
+# Make the application logic directory part of the python package search path so it can be imported easily
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'validate_approvals'))
+from validate_approvals import ValidateApprovals
+
+if __name__ == '__main__':
+    # You can overwrite default repo directory by specifying '--repo-dir' from the CLI
+    # By default it is assumed that there is only one repo dir in the same dir as the CLI file
+    if len(os.listdir()) == 1:
+        default_repo_dir = os.path.join(os.path.dirname(__file__), os.listdir(os.path.dirname(__file__))[0])
+    elif len(os.listdir()) > 1:
+        # Else assume there is a repo named 'repo_root'
+        default_repo_dir = 'repo_root'
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--repo-dir', help='path to the repo from where the CLI is executed', default=default_repo_dir)
+    parser.add_argument('--approvers', required=True, help='comma separated approvers of the affected directories')
+    parser.add_argument('--changed-files', required=True, help='comma separated paths within the root of the repo to the changed files')
+    args = parser.parse_args()
+    
+    approvers_input = args.approvers
+    # Python automatically replaces '-' in the argument variable with '_'
+    changed_files_input = args.changed_files
+    repo_dir = args.repo_dir
+
+    v = ValidateApprovals(repo_dir, approvers_input, changed_files_input)
+    v.validate_approvals()
